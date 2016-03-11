@@ -5,7 +5,7 @@ import json
 import sys
 
 # Edit this to change the seperator
-SASSC_SEPERATOR = " "
+SEPERATOR = " "
 
 def main():
     if len(sys.argv) != 3:
@@ -31,6 +31,9 @@ def main():
     ipa_xsampa = []
     sassc_ipa = []
 
+    # The IPAs that actually occur within SASSC
+    sassc_active_ipa = {}
+
     with open("./ipa_xsampa_map.json") as f:
         ipa_xsampa = json.load(f)
 
@@ -38,6 +41,9 @@ def main():
     if sassc_active:
         with open("./sassc_ipa.json") as f:
             sassc_ipa = json.load(f)
+        for pair in sassc_ipa:
+            for char in pair[1]:
+                sassc_active_ipa[char] = 1
 
     if source == "xsampa":
         for pair in ipa_xsampa:
@@ -72,23 +78,29 @@ def main():
             mapping[k] = map_out if not failed else None
 
     line = sys.stdin.readline()
-    seperator = SASSC_SEPERATOR if sassc_active else ""
     # Do the conversion now
     while line:
-        line = unicode(line.strip())
+        line = unicode(line, 'utf-8').strip()
         output = []
         if sassc_active:
-            tokens = line.split(SASSC_SEPERATOR)
+            tokens = line.split(SEPERATOR)
         else:
             tokens = line
         for token in tokens:
+            # Remove extraneous chars that IPA does not accept
+            if sink == "sassc":
+                cleaned_token = u""
+                for char in token:
+                    if sassc_active_ipa.get(char):
+                        cleaned_token += char
+                token = cleaned_token
             mapped = mapping.get(token)
             if not mapped:
                 print("WARNING: could not map token ", token, file=sys.stderr)
             else:
                 output.append(mapped)
-        output = seperator.join(output)
-        print(output)
+        output = SEPERATOR.join(output)
+        print(output.encode("utf-8"))
         line = sys.stdin.readline()
     
 def print_usage():
