@@ -37,7 +37,6 @@ def main():
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
-
     with open(os.path.join(script_dir, "ipa_xsampa_map.json")) as f:
         ipa_xsampa = json.load(f)
 
@@ -110,11 +109,23 @@ def main():
             output = SEPERATOR.join(output)
         else:
             output = "".join(output)
-        print(output.encode("utf-8"))
+	output += "\n"
+        try:
+            sys.stdout.write(output.encode("utf-8"))
+        except IOError:
+            try:
+                sys.stdout.close()
+            except IOError:
+                exit(1)
+            try:
+                sys.stderr.close()
+            except IOError:
+                exit(1)
+            exit(0)
         line = sys.stdin.readline()
     
 def print_usage():
-    print("Usage: python sassc_converter.py ipa xsampa")
+    print("Usage: python converter.py ipa xsampa")
     print("Choices: ipa xsampa sassc")
     print("The example command reads STDIN ipa and pipes xsampa to STDOUT")
     print("Tokens must be seperated, by default the seperator is whitespace")
