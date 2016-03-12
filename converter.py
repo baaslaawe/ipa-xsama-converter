@@ -3,6 +3,7 @@
 from __future__ import print_function
 import json
 import sys
+import os
 
 # Edit this to change the seperator
 SEPERATOR = " "
@@ -34,12 +35,15 @@ def main():
     # The IPAs that actually occur within SASSC
     sassc_active_ipa = {}
 
-    with open("./ipa_xsampa_map.json") as f:
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
+
+    with open(os.path.join(script_dir, "ipa_xsampa_map.json")) as f:
         ipa_xsampa = json.load(f)
 
     sassc_active = source == "sassc" or sink == "sassc"
     if sassc_active:
-        with open("./sassc_ipa.json") as f:
+        with open(os.path.join(script_dir, "./sassc_ipa.json")) as f:
             sassc_ipa = json.load(f)
         for pair in sassc_ipa:
             for char in pair[1]:
@@ -87,6 +91,9 @@ def main():
         else:
             tokens = line
         for token in tokens:
+            if token.isspace():
+                output.append(token)
+                continue
             # Remove extraneous chars that IPA does not accept
             if sink == "sassc":
                 cleaned_token = u""
@@ -99,7 +106,10 @@ def main():
                 print("WARNING: could not map token ", token, file=sys.stderr)
             else:
                 output.append(mapped)
-        output = SEPERATOR.join(output)
+        if sassc_active:
+            output = SEPERATOR.join(output)
+        else:
+            output = "".join(output)
         print(output.encode("utf-8"))
         line = sys.stdin.readline()
     
