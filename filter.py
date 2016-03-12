@@ -22,7 +22,6 @@ def main():
         for char in line:
             if symbols.get(char) or char.isspace():
                 output += char
-	output += "\n"
         try:
             sys.stdout.write(output.encode("utf-8"))
         except IOError:
